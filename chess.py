@@ -45,84 +45,75 @@ class Chessboard:
     def square_check(self, square, possible_squares, can_take):
         y, x = square
         if self.is_valid((y, x)):
-            pass
-        else:
-            return possible_squares, can_take 
-        if not self.is_occupied((y, x)):
-            possible_squares.append((y, x))
-        elif self.is_occupied((y, x)):
-            can_take.append((y, x))
-            return possible_squares, can_take 
-
+            if not self.is_occupied((y, x)):
+                possible_squares.append((y, x))
+            else:
+                can_take.append((y, x))
         return possible_squares, can_take 
 
     def rook_possibles(self, piece_at, possible_squares, can_take):
         y, x = piece_at
 
-        iter_y = y
-        iter_x = x
-
         # check down 
         for _ in range(8):
-            iter_y += 1
-            possible_squares, can_take = self.square_check((iter_y, x), possible_squares, can_take)
+            y += 1
+            possible_squares, can_take = self.square_check((y, x), possible_squares, can_take)
 
         # check up
-        iter_y = y # iter y hast to be brought back to original piece position
+        y, _ = piece_at
         for _ in range(8):
-            iter_y -= 1 
-            possible_squares, can_take = self.square_check((iter_y, x), possible_squares, can_take)
+            y -= 1 
+            possible_squares, can_take = self.square_check((y, x), possible_squares, can_take)
 
         #check right
         for _ in range(8):
-            iter_x += 1 
-            possible_squares, can_take = self.square_check((y, iter_x), possible_squares, can_take)
+            x += 1 
+            possible_squares, can_take = self.square_check((y,x), possible_squares, can_take)
 
         # check left
-        iter_x = x  # iter_x has to be brought back to original piece position 
+        _, x = piece_at
         for _ in range(8):
-            iter_x -= 1 
-            possible_squares, can_take = self.square_check((y, iter_x), possible_squares, can_take)
+            x -= 1 
+            possible_squares, can_take = self.square_check((y, x), possible_squares, can_take)
         return possible_squares, can_take
 
     def bishop_possibles(self, piece_at, possible_squares, can_take):
         y, x = piece_at
-        iter_y = y
-        iter_x = x
 
         # check down right
         for _ in range(8):
-            iter_x += 1
-            iter_y += 1
-            possible_squares, can_take = self.square_check((iter_y, iter_x), possible_squares, can_take)
+            x += 1
+            y += 1
+            possible_squares, can_take = self.square_check((y, x), possible_squares, can_take)
 
-        iter_y, iter_x = y, x # go back to original values
+        y, x = piece_at
+
 
         # check up left
         for _ in range(8):
-            iter_x -= 1
-            iter_y -= 1
-            possible_squares, can_take = self.square_check((iter_y, iter_x), possible_squares, can_take)
+            x -= 1
+            y -= 1
+            possible_squares, can_take = self.square_check((y, x), possible_squares, can_take)
 
-        iter_y, iter_x = y, x # go back to original values
+        y, x = piece_at
 
         # check up right 
         for _ in range(8):
-            iter_x += 1
-            iter_y -= 1
-            possible_squares, can_take = self.square_check((iter_y, iter_x), possible_squares, can_take)
+            x += 1
+            y -= 1
+            possible_squares, can_take = self.square_check((y, x), possible_squares, can_take)
 
-        iter_y, iter_x = y, x # go back to original values
+        y, x = piece_at
 
         # check up left 
         for _ in range(8):
-            iter_x += 1
-            iter_y -= 1
-            possible_squares, can_take = self.square_check((iter_y, iter_x), possible_squares, can_take)
+            x += 1
+            y -= 1
+            possible_squares, can_take = self.square_check((y, x), possible_squares, can_take)
 
         return possible_squares, can_take
 
-    def action_loop(self, piece_at):
+    def move_logic(self, piece_at):
         y, x = piece_at
         possible_squares = list() 
         can_take = list()   
@@ -199,11 +190,11 @@ class Chessboard:
         knights_white_start = [[7, 1], [7, 6]]
         knights_black_start = [[0, 1], [0, 6]]
 
-        for item in knights_white_start  :
+        for item in knights_white_start:
             y, x = item
             self.board[y][x] = Knight(item, "W")
 
-        for item in knights_black_start :
+        for item in knights_black_start:
             y, x = item
             self.board[y][x] = Knight(item, "B")
 
@@ -237,6 +228,9 @@ class Queen(Piece):
 class Knight(Piece):
     pass
 
+class Pawn(Piece):
+    pass
+
 
 
 chess = Chessboard()
@@ -244,4 +238,4 @@ chess.init_pieces()
 chess.print_()
 
 
-print(chess.action_loop((7, 2)))
+print(chess.move_logic((7, 2)))
