@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 class Chessboard:
 
@@ -14,10 +14,10 @@ class Chessboard:
 
     def is_occupied(self, position) -> bool:
         y, x = position 
-        if self.board[y][x] is True:
-            return False 
+        if isinstance(self.board[y][x], Piece):
+            return True 
         else:
-            return True
+            return False
 
     def generate_conversion_maps(self):
         files = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
@@ -88,7 +88,6 @@ class Chessboard:
 
         y, x = piece_at
 
-
         # check up left
         for _ in range(8):
             x -= 1
@@ -137,81 +136,77 @@ class Chessboard:
 
     def init_pieces(self):
             
-        # Rooks
+        # hard-coded starting position for every piece
 
         rook_black_start = [[0, 0], [0, 7]]
         rook_white_start = [[7, 7], [7, 0]]
 
         for item in rook_white_start:
             y, x = item
-            self.board[y][x] = Rook(item, "W") 
+            self.board[y][x] = Rook(item, "W", self.coords_to_algebraic_map) 
 
         for item in rook_black_start:
             y, x = item
-            self.board[y][x] = Rook(item, "B") 
-
-        # Bishops
+            self.board[y][x] = Rook(item, "B", self.coords_to_algebraic_map) 
 
         bishop_white_start = [[7, 2], [7, 5]]
         bishop_black_start = [[0, 2], [0, 5]]
 
         for item in bishop_white_start:
             y, x = item
-            self.board[y][x] = Bishop(item, "W") 
+            self.board[y][x] = Bishop(item, "W", self.coords_to_algebraic_map) 
 
         for item in bishop_black_start:
             y, x = item
-            self.board[y][x] = Bishop(item, "B") 
-
-        # King
+            self.board[y][x] = Bishop(item, "B", self.coords_to_algebraic_map) 
 
         king_white_start = [[7, 4]]
         king_black_start = [[0, 4]]
 
         for item in king_white_start:
             y, x = item
-            self.board[y][x] = King(item, "W")
+            self.board[y][x] = King(item, "W", self.coords_to_algebraic_map)
 
         for item in king_black_start:
             y, x = item
-            self.board[y][x] = King(item, "B")
+            self.board[y][x] = King(item, "B", self.coords_to_algebraic_map)
 
         queen_white_start = [[7, 3]]
         queen_black_start = [[0, 3]]
 
         for item in queen_white_start:
             y, x = item
-            self.board[y][x] = Queen(item, "W")
+            self.board[y][x] = Queen(item, "W", self.coords_to_algebraic_map)
 
         for item in queen_black_start:
             y, x = item
-            self.board[y][x] = Queen(item, "B")
+            self.board[y][x] = Queen(item, "B", self.coords_to_algebraic_map)
 
         knights_white_start = [[7, 1], [7, 6]]
         knights_black_start = [[0, 1], [0, 6]]
 
         for item in knights_white_start:
             y, x = item
-            self.board[y][x] = Knight(item, "W")
+            self.board[y][x] = Knight(item, "W", self.coords_to_algebraic_map)
 
         for item in knights_black_start:
             y, x = item
-            self.board[y][x] = Knight(item, "B")
+            self.board[y][x] = Knight(item, "B", self.coords_to_algebraic_map)
 
 class Piece:
-    def __init__(self, position, color):
+    def __init__(self, position, color, coords_to_notation):
         self.color = color
         self.position = position
-        self.notation_map = [{'0': 'A', '1': 'B', '2': 'C', '3': 'D', '4': 'E', '5': 'F', '6': 'G', '7': 'H'}, {'7': '1', '6': '2', '5': '3', '4': '2', '3': '5', '2': '6', '1': '7', '0': '8'}]
+        self.coords_to_notation_map = coords_to_notation 
 
     def __repr__(self) -> str:
-        y, x = self.position
-        y = self.notation_map[1][str(y)]
-        x = self.notation_map[0][str(x)]
-        return f"{self.color}{self.__class__.__name__}{x}{y}"
+        return f"{self.color}{self.__class__.__name__}{self.coords_to_notation_map[tuple(self.position)]}"
 
     def __str__(self) -> str:
         return self.__class__.__name__
+    
+    def change_position(self, new_position):
+        self.position = new_position
 
 class Rook(Piece):
     pass
