@@ -1,9 +1,12 @@
 from typing import List
 
 class Chessboard:
+
     def __init__(self):
         self.board = [[True for _x in range(8) ] for _y in range(8)]
-        self.notation_map = [{'0': 'A', '1': 'B', '2': 'C', '3': 'D', '4': 'E', '5': 'F', '6': 'G', '7': 'H'}, {'7': '1', '6': '2', '5': '3', '4': '2', '3': '5', '2': '6', '1': '7', '0': '8'}]
+        self.algebraic_to_coords_map = {}
+        self.coords_to_algebraic_map = {}
+        self.generate_conversion_maps()
 
     def print_(self):
         for item in self.board:
@@ -16,9 +19,23 @@ class Chessboard:
         else:
             return True
 
-    def correct_notation(self, coords) -> List:
-        return [(self.notation_map[0][str(item[0])], self.notation_map[1][str(item[1])]) for item in coords]
+    def generate_conversion_maps(self):
+        files = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+        ranks = ['1', '2', '3', '4', '5', '6', '7', '8']
+        
+        for file_index, file in enumerate(files):
+            for rank_index, rank in enumerate(ranks):
+                coords = (rank_index, file_index)
+                notation = f"{file}{rank}"
+                self.algebraic_to_coords_map[notation] = coords
+                self.coords_to_algebraic_map[coords] = notation
 
+    def algebraic_to_coords(self, notation):
+        return self.algebraic_to_coords_map[notation]
+
+    def coords_to_algebraic(self, coords):
+        return self.coords_to_algebraic_map[coords]
+    
     def is_valid(self, position) -> bool:
         y, x = position
         if 0 <= y <= 7 and 0 <= x <= 7:
@@ -39,73 +56,93 @@ class Chessboard:
 
         return possible_squares, can_take 
 
-    def action_loop(self, piece_at):
+    def rook_possibles(self, piece_at, possible_squares, can_take):
         y, x = piece_at
-        possible_squares = []
-        can_take = []
+
         iter_y = y
         iter_x = x
 
+        # check down 
+        for _ in range(8):
+            iter_y += 1
+            possible_squares, can_take = self.square_check((iter_y, x), possible_squares, can_take)
+
+        # check up
+        iter_y = y # iter y hast to be brought back to original piece position
+        for _ in range(8):
+            iter_y -= 1 
+            possible_squares, can_take = self.square_check((iter_y, x), possible_squares, can_take)
+
+        #check right
+        for _ in range(8):
+            iter_x += 1 
+            possible_squares, can_take = self.square_check((y, iter_x), possible_squares, can_take)
+
+        # check left
+        iter_x = x  # iter_x has to be brought back to original piece position 
+        for _ in range(8):
+            iter_x -= 1 
+            possible_squares, can_take = self.square_check((y, iter_x), possible_squares, can_take)
+        return possible_squares, can_take
+
+    def bishop_possibles(self, piece_at, possible_squares, can_take):
+        y, x = piece_at
+        iter_y = y
+        iter_x = x
+
+        # check down right
+        for _ in range(8):
+            iter_x += 1
+            iter_y += 1
+            possible_squares, can_take = self.square_check((iter_y, iter_x), possible_squares, can_take)
+
+        iter_y, iter_x = y, x # go back to original values
+
+        # check up left
+        for _ in range(8):
+            iter_x -= 1
+            iter_y -= 1
+            possible_squares, can_take = self.square_check((iter_y, iter_x), possible_squares, can_take)
+
+        iter_y, iter_x = y, x # go back to original values
+
+        # check up right 
+        for _ in range(8):
+            iter_x += 1
+            iter_y -= 1
+            possible_squares, can_take = self.square_check((iter_y, iter_x), possible_squares, can_take)
+
+        iter_y, iter_x = y, x # go back to original values
+
+        # check up left 
+        for _ in range(8):
+            iter_x += 1
+            iter_y -= 1
+            possible_squares, can_take = self.square_check((iter_y, iter_x), possible_squares, can_take)
+
+        return possible_squares, can_take
+
+    def action_loop(self, piece_at):
+        y, x = piece_at
+        possible_squares = list() 
+        can_take = list()   
+
         if type(self.board[y][x]) == Rook:
-            # check down 
-            for _ in range(8):
-                iter_y += 1
-                possible_squares, can_take = self.square_check((iter_y, x), possible_squares, can_take)
+           possible_squares, can_take = self.rook_possibles(piece_at, possible_squares, can_take)
 
-            # check up
-            iter_y = y # iter y hast to be brought back to original piece position
-            for _ in range(8):
-                iter_y -= 1 
-                possible_squares, can_take = self.square_check((iter_y, x), possible_squares, can_take)
-
-            #check right
-            for _ in range(8):
-                iter_x += 1 
-                possible_squares, can_take = self.square_check((y, iter_x), possible_squares, can_take)
-
-            # check left
-            iter_x = x  # iter_x has to be brought back to original piece position 
-            for _ in range(8):
-                iter_x -= 1 
-                possible_squares, can_take = self.square_check((y, iter_x), possible_squares, can_take)
-            if possible_squares:
-                return possible_squares
-            else:
-                return []
-            
         if type(self.board[y][x]) == Bishop:
-            # check down right
-            for _ in range(8):
-                iter_x += 1
-                iter_y += 1
-                possible_squares, can_take = self.square_check((iter_y, iter_x), possible_squares, can_take)
+            possible_squares, can_take = self.bishop_possibles(piece_at, possible_squares, can_take)
 
-            iter_y, iter_x = y, x # go back to original values
+        moves = set()
+        takes = set()
 
-            # check up left
-            for _ in range(8):
-                iter_x -= 1
-                iter_y -= 1
-                possible_squares, can_take = self.square_check((iter_y, iter_x), possible_squares, can_take)
+        for item in possible_squares:
+            moves.add(self.coords_to_algebraic_map[item])
+        print(self.board[y][x].__class__.__name__, "can move to ", moves)
 
-            iter_y, iter_x = y, x # go back to original values
-
-            # check up right 
-            for _ in range(8):
-                iter_x += 1
-                iter_y -= 1
-                possible_squares, can_take = self.square_check((iter_y, iter_x), possible_squares, can_take)
-
-            iter_y, iter_x = y, x # go back to original values
-
-            # check up left 
-            for _ in range(8):
-                iter_x += 1
-                iter_y -= 1
-                possible_squares, can_take = self.square_check((iter_y, iter_x), possible_squares, can_take)
-        
-        print(self.board[y][x].__class__.__name__, "can move to \n")
-        print(self.correct_notation(possible_squares))
+        for item in can_take:
+            takes.add(self.coords_to_algebraic_map[item])
+        print(self.board[y][x].__class__.__name__, "can move to ", takes)
 
     def init_pieces(self):
             
